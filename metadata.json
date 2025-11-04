@@ -1,0 +1,5 @@
+{
+  "name": "Mini NotebookLM",
+  "description": "A simplified AI application that simulates Google NotebookLM. It processes user-uploaded documents and answers questions based strictly on the content of those documents, using a Retrieval-Augmented Generation (RAG) approach.",
+  "requestFramePermissions": []
+}
