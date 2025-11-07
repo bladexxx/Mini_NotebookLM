@@ -100,7 +100,7 @@ export const embedContent = async (
   taskType: 'RETRIEVAL_DOCUMENT' | 'RETRIEVAL_QUERY'
 ): Promise<number[]> => {
   if (aiProvider === 'GATEWAY') {
-    const response = await _callAiGateway('v1/embeddings', 'single embedding', {
+    const response = await _callAiGateway('/embeddings', 'single embedding', {
       input: text,
       model: gatewayEmbeddingModel,
     });
@@ -126,7 +126,7 @@ export const embedChunks = async (chunks: DocumentChunk[]): Promise<DocumentChun
   let embeddings: number[][];
 
   if (aiProvider === 'GATEWAY') {
-    const response = await _callAiGateway('v1/embeddings', 'batch embedding', {
+    const response = await _callAiGateway('embeddings', 'batch embedding', {
         input: contents,
         model: gatewayEmbeddingModel,
     });
