@@ -69,6 +69,9 @@ const _callAiGateway = async (endpoint: string, callName: string, requestBody: {
     // Construct a standard OpenAI-compatible URL, e.g., {base_url}/v1/chat/completions
     const fullGatewayUrl = `${gatewayUrl}/${modelInBody}/${endpoint}`;
     
+    console.log(`[AI Service] Sending ${callName} request to Gateway URL: %c${fullGatewayUrl}`, 'font-weight: bold;');
+    console.log(`[AI Service] Sending ${callName} request to Gateway with body:`, JSON.stringify(requestBody, null, 2));
+    
     try {
         const response = await fetch(fullGatewayUrl, {
             method: 'POST',
