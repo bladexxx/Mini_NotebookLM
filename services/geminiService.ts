@@ -85,6 +85,9 @@ const _callAiGateway = async (endpoint: string, callName: string, requestBody: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${gatewayApiKey}`
             },
+            data:{
+               'model': finalRequestBody.model
+               }            }
             body: JSON.stringify(finalRequestBody)
         });
 
