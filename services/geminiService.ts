@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 import type { DocumentChunk, DocumentChunkWithEmbedding } from '../types';
 import { VectorStore } from './vectorStore';
@@ -69,8 +70,13 @@ const _callAiGateway = async (endpoint: string, callName: string, requestBody: {
     // Construct a standard OpenAI-compatible URL, e.g., {base_url}/v1/chat/completions
     const fullGatewayUrl = `${gatewayUrl}/${modelInBody}/${endpoint}`;
     
+    const finalRequestBody = {...requestBody};
+    if (endpoint.includes('embeddings')) {
+      finalRequestBody.model = 'models/text-embedding-004';
+    }
+
     console.log(`[AI Service] Sending ${callName} request to Gateway URL: %c${fullGatewayUrl}`, 'font-weight: bold;');
-    console.log(`[AI Service] Sending ${callName} request to Gateway with body:`, JSON.stringify(requestBody, null, 2));
+    console.log(`[AI Service] Sending ${callName} request to Gateway with body:`, JSON.stringify(finalRequestBody, null, 2));
     
     try {
         const response = await fetch(fullGatewayUrl, {
@@ -79,7 +85,7 @@ const _callAiGateway = async (endpoint: string, callName: string, requestBody: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${gatewayApiKey}`
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(finalRequestBody)
         });
 
         const data = await response.json();
@@ -111,13 +117,14 @@ export const embedContent = async (
     return response.data[0].embedding;
   } else {
     // Direct Gemini call
-    // Fix: Corrected `embedContent` to use the singular `content` property for a single piece of text. The response for a single embedding is also singular: `response.embedding`.
+    // Fix: Changed `content` to `contents` to match the expected API.
     const response = await ai.models.embedContent({
       model: 'text-embedding-004',
-      content: text,
+      contents: text,
       taskType: taskType,
     });
-    return response.embedding.values;
+    // Fix: The response contains an `embeddings` array. Access the first element for a single request.
+    return response.embeddings[0].values;
   }
 };
 
@@ -129,7 +136,7 @@ export const embedChunks = async (chunks: DocumentChunk[]): Promise<DocumentChun
   let embeddings: number[][];
 
   if (aiProvider === 'GATEWAY') {
-    const response = await _callAiGateway('embeddings', 'batch embedding', {
+    const response = await _callAiGateway('/embeddings', 'batch embedding', {
         input: contents,
         model: gatewayEmbeddingModel,
     });
@@ -140,13 +147,11 @@ export const embedChunks = async (chunks: DocumentChunk[]): Promise<DocumentChun
     const allEmbeddings: number[][] = [];
     for (let i = 0; i < contents.length; i += BATCH_SIZE) {
         const batchContents = contents.slice(i, i + BATCH_SIZE);
-        // Fix: Use `batchEmbedContents` for batching requests. `embedContent` does not accept a `requests` property.
-        const result = await ai.models.batchEmbedContents({
-            requests: batchContents.map((content) => ({
-                model: 'text-embedding-004',
-                content,
-                taskType: 'RETRIEVAL_DOCUMENT',
-            })),
+        // Fix: Replaced `batchEmbedContents` with `embedContent` for batching, which is compatible with the SDK version indicated by the error.
+        const result = await ai.models.embedContent({
+            model: 'text-embedding-004',
+            contents: batchContents,
+            taskType: 'RETRIEVAL_DOCUMENT',
         });
         allEmbeddings.push(...result.embeddings.map(e => e.values));
     }
