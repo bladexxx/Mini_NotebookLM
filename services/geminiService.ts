@@ -77,7 +77,7 @@ const _callAiGateway = async (endpoint: string, callName: string, requestBody: {
 
     console.log(`[AI Service] Sending ${callName} request to Gateway URL: %c${fullGatewayUrl}`, 'font-weight: bold;');
     console.log(`[AI Service] Sending ${callName} request to Gateway with body:`, JSON.stringify(finalRequestBody, null, 2));
-    
+    console.log(`[AI Service] Sending ${callName} request to Gateway Model: %c${finalRequestBody.model}`, 'font-weight: bold;');
     try {
         const response = await fetch(fullGatewayUrl, {
             method: 'POST',
